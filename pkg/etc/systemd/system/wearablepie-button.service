@@ -1,0 +1,9 @@
+[Unit]
+Description=Button loop that saves photos
+
+[Service]
+Type=simple
+ExecStart=/usr/share/wearablepie/scripts/button.py
+
+[Install]
+WantedBy=multi-user.target

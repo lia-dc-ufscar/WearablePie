@@ -1,3 +1,10 @@
+#!/bin/python3 -tt
+
+
+import sys
+sys.stdout = open('/tmp/wearablepie-button.log','w');
+sys.stderr = open('/tmp/wearablepie-button-err.log','w');
+
 import time
 import picamera
 import RPi.GPIO as GPIO
@@ -8,6 +15,11 @@ GPIO.setmode(GPIO.BCM)
 GPIO.setup(17, GPIO.IN, GPIO.PUD_UP)
 
 photoPath = ""
+
+#todo: load last photo taken too
+#todo: load log file path (not really required though)
+
+
 
 while True:
    GPIO.wait_for_edge(17, GPIO.FALLING)

@@ -7,3 +7,4 @@
 #
 
 cp -rf pkg/* /
+chmod +x /usr/share/wearablepie/scripts/button.py
