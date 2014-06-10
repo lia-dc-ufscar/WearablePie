@@ -1,0 +1,9 @@
+#!/bin/bash
+#
+#
+#  'Installation script' :  Should run
+# as root! (Eventually it will become a pacman
+# package)
+#
+
+cp -rf pkg/* /
