@@ -6,26 +6,41 @@ sys.stdout = open('/tmp/wearablepie-button.log','w');
 sys.stderr = open('/tmp/wearablepie-button-err.log','w');
 
 import time
+import json
 import picamera
+import shutil
 import RPi.GPIO as GPIO
 
-i = 0
+#load configuration
+PhotoCounter=0
+configJson = json.loads('{"last-photo":0}')
+try:
+	config = open('/var/wearablepie/photos.json','r')
+	configJson = json.load(config)
+	PhotoCounter = configJson['last-photo']
+	config.close()
+except Exception, e:
+	print "Could not load configuration: ",e
 
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(17, GPIO.IN, GPIO.PUD_UP)
 
-photoPath = ""
-
-#todo: load last photo taken too
-#todo: load log file path (not really required though)
-
-
-
 while True:
-   GPIO.wait_for_edge(17, GPIO.FALLING)
+	GPIO.wait_for_edge(17, GPIO.FALLING)
+	
+	with picamera.PiCamera() as camera:
+		#save photo
+		try:
+			camera.start_preview()
+			camera.capture('/var/wearablepie/photos/'photo+str(PhotoCounter)+'.jpg')
+			camera.stop_preview()
+			shutil.copy2('/var/wearablepie/last-gps.json', '/var/wearablepie/photos/data'+str(PhotoCounter)+'.json')
+			PhotoCounter+=1
+			configJson['last-photo']=PhotoCounter
+			lastphoto = open('/var/wearablepie/photos.json','w')
+			jsonphoto= json.dumps(dict(config))
+			print >> lastphoto, jsonphoto
+			lastphoto.close()
 
-   with picamera.PiCamera() as camera:
-      camera.start_preview()
-      camera.capture('/root/python-code/image'+str(i)+'.jpg')
-      i+=1
-      camera.stop_preview()
+		except Exception, e:
+			print "Could not take photo/save gps data: ",e

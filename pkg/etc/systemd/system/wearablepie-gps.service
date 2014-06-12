@@ -1,11 +1,12 @@
 [Unit]
-Description=Button loop that saves photos
+Description=GPS Loop
 
 [Service]
 Type=simple
-ExecStart=/usr/share/wearablepie/scripts/button.py
+ExecStart=/usr/share/wearablepie/scripts/gpsservice.py
 Restart=always
 RestartSec=120
 
 [Install]
 WantedBy=multi-user.target
+

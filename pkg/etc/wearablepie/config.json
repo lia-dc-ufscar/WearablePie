@@ -1,9 +1,9 @@
 {
-
-    "device-id": "Ea3d4f6b11b0218457a748fbc6359e46f",
+    "device-id": "<DEVICE>",
     "registered": false,
     "user-id": "",
-    "api-token": "",
     "rest": "catinthemap.herokuapp.com",
-    "s3-storage": "wearable-photos.s3.amazon.com"
+    "s3-storage": "wearable-photos.s3.amazon.com",
+	"gps-refresh-rate": 300,
+	"gps-push-rate": 5
 }
