@@ -10,3 +10,6 @@ RestartSec=120
 [Install]
 WantedBy=multi-user.target
 
+[Unit]
+Requires=wearablepie-gpsd.service
+After=wearablepie-gpsd.service 
