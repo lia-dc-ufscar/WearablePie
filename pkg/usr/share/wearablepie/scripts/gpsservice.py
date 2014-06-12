@@ -37,22 +37,23 @@ while(True):
 		report = session.next()
 		# Wait for a 'TPV' report and display the current time
 		if report['class'] == 'TPV':
-			print report.time,":",report
-			lastpos = open('/var/wearablepie/last-gps.json','w')
-			jsonpos= json.dumps(dict(report))
-			print >> lastpos, jsonpos
-			lastpos.close()
+			if time in report:
+				print report.time,":",report
+				lastpos = open('/var/wearablepie/last-gps.json','w')
+				jsonpos= json.dumps(dict(report))
+				print >> lastpos, jsonpos
+				lastpos.close()
+				if PushCount >= PushRate:
+					PushCount = 0
+					if DeviceRegistered:
+						#upload data
+						restPost={}
+						restpost['userId']=UserId
+						restpost['location']=jsonpos
+						restpost['deviceId']=DeviceId
 			time.sleep(SleepTime)
 			PushCount += 1
-			if PushCount >= PushRate:
-				PushCount = 0
-				if DeviceRegistered:
-					#upload data
-					restPost={}
-					restpost['userId']=UserId
-					restpost['location']=jsonpos
-					restpost['deviceId']=DeviceId
-					
+			
 	except KeyError:
 		pass
 	except KeyboardInterrupt:
