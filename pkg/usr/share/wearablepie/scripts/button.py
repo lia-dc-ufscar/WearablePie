@@ -19,8 +19,8 @@ try:
 	configJson = json.load(config)
 	PhotoCounter = configJson['last-photo']
 	config.close()
-except e:
-	print("Could not load configuration: ",e)
+except :
+	print("Could not load configuration")
 
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(17, GPIO.IN, GPIO.PUD_UP)
@@ -41,6 +41,6 @@ while True:
 			jsonphoto= json.dumps(configJson)
 			print >> lastphoto, jsonphoto
 			lastphoto.close()
-
-		except e:
-			print("Could not take photo/save gps data: ",e)
+			
+		except:
+			print("Could not take photo/save gps data")
