@@ -32,7 +32,7 @@ while True:
 		#save photo
 		try:
 			camera.start_preview()
-			camera.capture('/var/wearablepie/photos/'photo+str(PhotoCounter)+'.jpg')
+			camera.capture('/var/wearablepie/photos/photo%d.jpg'%PhotoCounter))
 			camera.stop_preview()
 			shutil.copy2('/var/wearablepie/last-gps.json', '/var/wearablepie/photos/data'+str(PhotoCounter)+'.json')
 			PhotoCounter+=1
