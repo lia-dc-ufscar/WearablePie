@@ -7,6 +7,7 @@ sys.stderr = open('/tmp/wearablepie-gps-err.log','w');
 import gps
 import json
 import time
+import subprocess
 
 #load configuration
 SleepTime = 300	#update files every 5 minutes
@@ -29,9 +30,19 @@ try:
 except Exception, e:
 	print "Could not load configuration: ",e
 
-session = gps.gps()
-session.stream(gps.WATCH_ENABLE | gps.WATCH_NEWSTYLE)
+connected = False
+session = None
 
+while(not connected):
+	try:
+		session = gps.gps()
+		session.stream(gps.WATCH_ENABLE | gps.WATCH_NEWSTYLE)
+		connected = True
+	except Exception, e:
+		print "Could not connect to the GPS module: ",e
+		subprocess.call(['/bin/gpsd', '/dev/ttyAMA0'])
+		sleep(2)
+		
 while(True):
 	try:
 		report = session.next()

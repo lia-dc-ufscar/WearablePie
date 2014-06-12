@@ -36,11 +36,10 @@ while True:
 			camera.stop_preview()
 			shutil.copy2('/var/wearablepie/last-gps.json', '/var/wearablepie/photos/data'+str(PhotoCounter)+'.json')
 			PhotoCounter+=1
-			configJson['last-photo']=PhotoCounter
 			lastphoto = open('/var/wearablepie/photos.json','w')
-			jsonphoto= json.dumps(configJson)
+			jsonphoto= json.dumps({"last-photo":PhotoCounter})
 			print >> lastphoto, jsonphoto
 			lastphoto.close()
 			
 		except:
-			print("Could not take photo/save gps data")
+			print("Could not take photo/save gps date")

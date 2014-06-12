@@ -1,2 +1,0 @@
-#!/bin/bash
-gpsd /dev/ttyAMA0
