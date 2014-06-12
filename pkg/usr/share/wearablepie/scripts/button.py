@@ -38,7 +38,7 @@ while True:
 			PhotoCounter+=1
 			configJson['last-photo']=PhotoCounter
 			lastphoto = open('/var/wearablepie/photos.json','w')
-			jsonphoto= json.dumps(dict(config))
+			jsonphoto= json.dumps(configJson)
 			print >> lastphoto, jsonphoto
 			lastphoto.close()
 

@@ -1,0 +1,9 @@
+[Unit]
+Description=GPS Daemon Starter
+
+[Service]
+Type=simple
+ExecStart=/usr/share/wearablepie/scripts/gpsd
+
+[Install]
+WantedBy=multi-user.target

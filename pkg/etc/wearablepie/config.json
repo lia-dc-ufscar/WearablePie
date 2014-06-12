@@ -4,6 +4,6 @@
     "user-id": "",
     "rest": "catinthemap.herokuapp.com",
     "s3-storage": "wearable-photos.s3.amazon.com",
-	"gps-refresh-rate": 300,
-	"gps-push-rate": 5
+    "gps-refresh-rate": 300,
+    "gps-push-rate": 5
 }
