@@ -6,6 +6,7 @@ sys.stderr = open('/tmp/wearablepie-uploadphoto','w',0)
 
 import json
 import time
+import requests
 from pyinotify import WatchManager, Notifier, EventsCodes, ProcessEvent
 
 #load configuration
@@ -30,7 +31,7 @@ except Exception, e:
 
 connected = False
 
-print("Configuration loaded: ",SleepTime,UploadRepeatInterval,DeviceRegistered,UserId)
+print("Configuration loaded: ",UploadRepeatInterval,DeviceRegistered,UserId)
 
 #utility functions
 def updatePhotosRemaining( next ):
@@ -38,7 +39,7 @@ def updatePhotosRemaining( next ):
 		photosRemaining = open('/var/wearablepie/photos_remaining.json','w')
 		photosRemaining.write('{"last-photo-sent": %d}'%next)
 		photosRemaining.close()
-	except:
+	except Exception, e:
 		print("Could not update file photos remaining!")
 		
 def getPhotosTaken():
@@ -48,19 +49,19 @@ def getPhotosTaken():
 		photosJson = json.load(photos)
 		photosTaken = photosJson['next-photo']
 		photos.close()
-	except:
-		print("Could not get photos taken")
+	except Exception, e:
+		print("Could not get photos taken", e)
 	return photosTaken
 	
-def getPhotosUploaded()
+def getPhotosUploaded():
 	lastUploaded=0
 	try:
 		photosRemaining = open('/var/wearablepie/photos_remaining.json','r')
 		photosRemainingJson = json.load(photosRemaining)
 		lastUploaded = photosRemainingJson['last-photo-sent']
 		photosRemaining.close()
-	except:
-		print("Could not get photo count")
+	except Exception, e:
+		print("Could not get photo count", e)
 	return lastUploaded
 
 
@@ -80,7 +81,7 @@ def uploadPhoto(photonum):
 		restPost['location']=json.load(oldReportFile)
 		oldReportFile.close()
 		restPost['deviceId']=DeviceId
-		restpost['photo']=True
+		restPost['photo']=True
 		tries = 3
 		while tries > 0:
 			try:
@@ -94,12 +95,14 @@ def uploadPhoto(photonum):
 					smallTries = 3
 					finalResult = True
 					while smallTries > 0:
-						r2 = requests.post(url, files=files,data=data)
-						print("Uploaded photo",r2)
-					except Exception, e:	
-						smallTries -= 1
-						print("Could not upload photo",e)
-						time.sleep(2)
+						try:
+							r2 = requests.post(url, files=files,data=data)
+							print("Uploaded photo",r2)
+							smallTries = 0
+						except Exception, e:	
+							smallTries -= 1
+							print("Could not upload photo",e)
+							time.sleep(2)
 						
 			except Exception, e:
 				print("Could not send GPS position ",e)
@@ -108,7 +111,7 @@ def uploadPhoto(photonum):
 	return finalResult
 
 #upload photos that were not yet
-if PhotoCounter < 5:
+if PhotoCounter > 0 and PhotoCounter < 5:
 	print("Trying to upload %d photos once again"%PhotoCounter)
 	while PhotoCounter > 0:
 		tries = 3
@@ -152,13 +155,15 @@ class PCloseWrite(ProcessEvent):
 			updatePhotosRemaining(LastPhotoUploaded)
 
 notifier = Notifier(wm, PCloseWrite())
+wdd=wm.add_watch('/var/wearablepie/photos.json',mask)
+print("Started Real Loop")
 while True:  # loop forever
-    try:
-        notifier.process_events()
-        if notifier.check_events():
-            notifier.read_events()
+	try:
+		notifier.process_events()
+		if notifier.check_events():
+			notifier.read_events()
 
-    except KeyboardInterrupt:
+	except KeyboardInterrupt:
 		print("Interrupted")
-        notifier.stop()
-        break
+		notifier.stop()
+		break
