@@ -5,7 +5,7 @@ Description=GPS Loop
 Type=simple
 ExecStart=/usr/share/wearablepie/scripts/gpsservice.py
 Restart=always
-RestartSec=120
+RestartSec=30
 
 [Install]
 WantedBy=multi-user.target

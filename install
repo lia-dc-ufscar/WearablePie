@@ -9,3 +9,4 @@
 cp -rf pkg/* /
 chmod +x /usr/share/wearablepie/scripts/button.py
 chmod +x /usr/share/wearablepie/scripts/gpsservice.py
+chmod +x /usr/share/wearablepie/scripts/uploadphoto.py

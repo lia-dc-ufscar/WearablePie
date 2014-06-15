@@ -10,6 +10,7 @@ import gps
 import json
 import time
 import subprocess
+import requests
 
 #setup system date
 import datetime
@@ -85,9 +86,21 @@ while(True):
 					if DeviceRegistered:
 						#upload data
 						restPost={}
-						restPost['userId']=UserId
-						restPost['location']=jsonpos
+						url = 'http://catinthemap.herokuapp.com/geo/tag/'+UserId;
+						headers = {'content-type':'application/json'}
+						restPost['location']=dict(report)
 						restPost['deviceId']=DeviceId
+						tries = 3
+						while tries > 0:
+							try:
+								r = requests.post(url, headers=headers, data=json.dumps(restPost))
+								print("Sent GPS position:",r)
+								if r.status_code == 200:
+									tries = 0
+							except Exception, e:
+								print("Could not send GPS position ",e)
+								time.sleep(2)
+								tries =- 1
 			time.sleep(SleepTime)
 			PushCount += 1
 			
