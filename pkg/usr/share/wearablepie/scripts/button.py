@@ -13,11 +13,11 @@ import RPi.GPIO as GPIO
 
 #load configuration
 PhotoCounter=0
-configJson = json.loads('{"last-photo":0}')
+configJson = json.loads('{"next-photo":0}')
 try:
 	config = open('/var/wearablepie/photos.json','r')
 	configJson = json.load(config)
-	PhotoCounter = configJson['last-photo']
+	PhotoCounter = configJson['next-photo']
 	config.close()
 except :
 	print("Could not load configuration")
@@ -36,10 +36,10 @@ while True:
 			camera.stop_preview()
 			shutil.copy2('/var/wearablepie/last-gps.json', '/var/wearablepie/photos/data'+str(PhotoCounter)+'.json')
 			PhotoCounter+=1
-			lastphoto = open('/var/wearablepie/photos.json','w')
-			jsonphoto= json.dumps({"last-photo":PhotoCounter})
-			print >> lastphoto, jsonphoto
-			lastphoto.close()
+			nextphoto = open('/var/wearablepie/photos.json','w')
+			jsonphoto= json.dumps({"next-photo":PhotoCounter})
+			nextphoto.write(jsonphoto)
+			nextphoto.close()
 			
 		except:
 			print("Could not take photo/save gps date")
