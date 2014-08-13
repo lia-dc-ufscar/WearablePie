@@ -12,8 +12,8 @@ from pyinotify import WatchManager, Notifier, EventsCodes, ProcessEvent
 
 photoFeedback = 24 
 GPIO.setmode(GPIO.BCM)
-GPIO.setup(photoFeedback, GPIO.OUT)
 GPIO.setwarnings(False)
+GPIO.setup(photoFeedback, GPIO.OUT)
 
 #load configuration
 UploadRepeatInterval = 300	#update files every 5 minutes
@@ -74,6 +74,8 @@ def getPhotosUploaded():
 #looks for photos that were not uploaded
 LastPhotoUploaded=getPhotosUploaded()
 PhotoCounter=getPhotosTaken() -  LastPhotoUploaded
+print getPhotosTaken()
+print LastPhotoUploaded 
 	
 def uploadPhoto(photonum):
 	finalResult = True
@@ -89,6 +91,7 @@ def uploadPhoto(photonum):
 		restPost['deviceId']=DeviceId
 		restPost['photo']=True
 		tries = 3
+		print "going to try"
 		while tries > 0:
 			try:
 				r = requests.post(url, headers=headers, data=json.dumps(restPost))

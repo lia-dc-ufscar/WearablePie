@@ -11,6 +11,7 @@ import json
 import time
 import subprocess
 import requests
+import RPi.GPIO as GPIO
 
 #setup system date
 import datetime
@@ -25,8 +26,7 @@ if datetime.date.today().year < 1980:
 
 
 #load configuration
-SleepTime = 300	#update files every 5 minutes
-PushRate = 5 #Every five sleeps it will try to send the data to the server
+PushRate = 300 #Every x iterations it will try to send the data to the server, if the fix is lost it will send data immediately after recovering it
 PushCount = 0
 DeviceRegistered = False
 RestAPI = "catinthemap.herokuapp.com"
@@ -36,7 +36,6 @@ DeviceId = ""
 try:
 	config = open('/etc/wearablepie/config.json','r')
 	configJson =json.load(config)
-	SleepTime = configJson['gps-refresh-rate']
 	PushRate  = configJson['gps-push-rate']
 	DeviceRegistered = configJson['registered']
 	RestAPI = configJson['rest']
@@ -49,12 +48,12 @@ except Exception, e:
 session = None
 connected = False
 
-print("Configuration loaded: ",SleepTime,PushRate,DeviceRegistered,UserId)
+print("Configuration loaded: ",PushRate,DeviceRegistered,UserId)
 		
 while not connected:
 	try:
 		session = gps.gps()
-		session.stream(gps.WATCH_ENABLE | gps.WATCH_NEWSTYLE)
+		session.stream(gps.WATCH_ENABLE)
 		connected = True
 	except Exception, e:
 		print("Could not connect to the GPS module: ", e)
@@ -66,55 +65,77 @@ GpsLog = open("/var/wearablepie/gps.log","a")
 
 print("Connected to GPS Daemon")
 
+#Feedback
+fix = False
+feedbackON = False
+gpsFeedback = 25
+
+GPIO.setmode(GPIO.BCM)
+GPIO.setwarnings(False)
+GPIO.setup(gpsFeedback, GPIO.OUT)
+
+def getFix():
+	global report
+	for satellite in report['satellites']:
+		if (satellite['used'] == True):
+			return True
+	return False
+
 while(True):
 	try:
 		report = session.next()
-		# Wait for a 'TPV' report and display the current time
-		if report['class'] == 'TPV':
-			if 'time' in report:
-				if (GetGPSSystemDate):
-					GetGPSSystemDate = False
-					print("Setting up system date")
-					os.system("date --set '%s'"%report.time)
-				
-				GpsLog.write("%s %s\n"%(report.time,report))
-				lastpos = open('/var/wearablepie/last-gps.json','w')
-				jsonpos= json.dumps(dict(report))
-				print >> lastpos, jsonpos
-				lastpos.close()
-				if PushCount >= PushRate:
-					GpsLog.flush() #force data write for GpsLog
-					PushCount = 0
-					if DeviceRegistered:
-						#upload data
-						restPost={}
-						url = 'http://catinthemap.herokuapp.com/geo/tag/'+UserId;
-						headers = {'content-type':'application/json'}
-						restPost['location']=dict(report)
-						restPost['deviceId']=DeviceId
-						tries = 3
-						while tries > 0:
-							try:
-								r = requests.post(url, headers=headers, data=json.dumps(restPost))
-								print("Sent GPS position:",r)
-								if r.status_code == 200:
-									tries = 0
-							except Exception, e:
-								print("Could not send GPS position ",e)
-								time.sleep(2)
-								tries =- 1
-			time.sleep(SleepTime)
-			PushCount += 1
-			#Clean current connection
-			print("Cleaning current connection")
-			session.close()
-			session = gps.gps()
-			session.stream(gps.WATCH_ENABLE | gps.WATCH_NEWSTYLE)
+		if report['class'] == 'SKY':
+			fix = getFix()
+		if not fix:
+			if not feedbackON:
+				#turn led on
+				GPIO.output(gpsFeedback, True)
+				print("No Fix ")
+				feedbackON = True
+
+			if PushCount < PushRate:
+				PushCount = PushRate
 		else:
-			session.close()
-			session = gps.gps()
-			session.stream(gps.WATCH_ENABLE | gps.WATCH_NEWSTYLE)
+			if feedbackON:
+				#turn led off
+				GPIO.output(gpsFeedback, False)
+				print("Fix")
+				feedbackON = False
+			# Wait for a 'TPV' report and display the current time
+			if report['class'] == 'TPV':
+				if 'time' in report:
+					if (GetGPSSystemDate):
+						GetGPSSystemDate = False
+						os.system("date --set '%s'"%report.time)
+					GpsLog.write("%s %s\n"%(report.time,report))
+					lastpos = open('/var/wearablepie/last-gps.json','w')
+					jsonpos= json.dumps(dict(report))
+					print >> lastpos, jsonpos
+					lastpos.close()
+					if PushCount >= PushRate:
+						GpsLog.flush() #force data write for GpsLog
+						PushCount = 0
+						if DeviceRegistered:
+							#upload data
+							restPost={}
+							url = 'http://catinthemap.herokuapp.com/geo/tag/'+UserId;
+							headers = {'content-type':'application/json'}
+							restPost['location']=dict(report)
+							restPost['deviceId']=DeviceId
+							tries = 3
+							while tries > 0:
+								try:
+									r = requests.post(url, headers=headers, data=json.dumps(restPost))
+									print("Sent GPS position:",r)
+									if r.status_code == 200:
+										tries = 0
+								except Exception, e:
+									print("Could not send GPS position ",e)
+									time.sleep(2)
+									tries =- 1
+				PushCount += 1
 	except KeyError:
+		print("KeyError")
 		pass
 	except KeyboardInterrupt:
 		print("Interrupted by Keyboard")
@@ -122,4 +143,6 @@ while(True):
 		quit()
 	except StopIteration:
 		print("Reached StopIteration")
-		session = None
+		session = gps.gps()
+		session.stream(gps.WATCH_ENABLE)
+		continue

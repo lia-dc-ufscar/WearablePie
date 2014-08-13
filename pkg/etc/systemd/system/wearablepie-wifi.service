@@ -1,0 +1,11 @@
+[Unit]
+Description=Wifi service that lights LED up on boot
+Before=netctl-auto@wlan0.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/share/wearablepie/scripts/wifi.py 0
+
+[Install]
+WantedBy=multi-user.target

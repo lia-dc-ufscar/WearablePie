@@ -19,7 +19,7 @@ def decodeFields(string):
 	pairs = string.split(',')
 	for p in pairs:
 		key,value = p.split(':')
-		if key not in ('Security', 'ESSID', 'Key'): 
+		if key not in ('Security', 'ESSID', 'Key', 'User'): 
 			raise ValueError
 		dictionary[key] = value
 	print("QR Code fields = "+str(dictionary))
@@ -34,9 +34,6 @@ def createProfile(f, fields):
 	f.write("ESSID='"+fields['ESSID']+"'\n")
 	if (fields['Security']!='none'): 
 		f.write("Key='"+fields['Key']+"'\n")
-	# execute wifi script and get time
-	f.write("ExecUpPost='/usr/bin/ntpd -gq || true; python /usr/share/wearablepie/scripts/wifi.py 1'\n")
-	f.write("ExecDownPre='python /usr/share/wearablepie/scripts/wifi.py 0'\n")
 
 #load configuration
 PhotoCounter=0
@@ -46,27 +43,29 @@ try:
 	configJson = json.load(config)
 	PhotoCounter = configJson['next-photo']
 	config.close()
-except:
-	print("Could not load configuration")
+except Exception, e:
+	print("Could not load configuration: ", e)
 
 def savePhoto():
+	global PhotoCounter
 	try:
 		shutil.copy2('/var/wearablepie/last-gps.json', '/var/wearablepie/photos/data'+str(PhotoCounter)+'.json')
 		PhotoCounter+=1
 		nextphoto = open('/var/wearablepie/photos.json','w')
 		jsonphoto= json.dumps({"next-photo":PhotoCounter})
 		nextphoto.write(jsonphoto)
-	except:
-		print("Could not save gps data")
+		nextphoto.close()
+	except Exception, e:
+		print("Could not save gps data: ", e)
 
 button = 17
 qrcodeFeedback = 23
 
 GPIO.setmode(GPIO.BCM)
+GPIO.setwarnings(False)
 GPIO.setup(button, GPIO.IN, GPIO.PUD_DOWN)
 GPIO.setwarnings(False)
 GPIO.setup(qrcodeFeedback, GPIO.OUT)
-GPIO.setwarnings(False)
 
 while True:
 	GPIO.wait_for_edge(button, GPIO.FALLING)
