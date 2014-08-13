@@ -1,0 +1,5 @@
+#!/bin/bash
+
+if [ $ACTION == 'CONNECT' ]; then
+	/usr/bin/systemctl restart wearablepie-upload.service
+fi

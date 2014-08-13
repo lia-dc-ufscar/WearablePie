@@ -74,8 +74,6 @@ def getPhotosUploaded():
 #looks for photos that were not uploaded
 LastPhotoUploaded=getPhotosUploaded()
 PhotoCounter=getPhotosTaken() -  LastPhotoUploaded
-print getPhotosTaken()
-print LastPhotoUploaded 
 	
 def uploadPhoto(photonum):
 	finalResult = True
@@ -84,14 +82,13 @@ def uploadPhoto(photonum):
 		finalResult = False
 		restPost={}
 		url = 'http://catinthemap.herokuapp.com/geo/tag/'+UserId;
-		headers = {'content-type':'application/json'}
+		headers = {'content-type':'application/json', 'connection': 'close'}
 		oldReportFile =  open('/var/wearablepie/photos/data%d.json'%photonum,'r')
 		restPost['location']=json.load(oldReportFile)
 		oldReportFile.close()
 		restPost['deviceId']=DeviceId
 		restPost['photo']=True
 		tries = 3
-		print "going to try"
 		while tries > 0:
 			try:
 				r = requests.post(url, headers=headers, data=json.dumps(restPost))
@@ -100,6 +97,7 @@ def uploadPhoto(photonum):
 					url = r.json()['photoId']['url']
 					files = {'file': open('/var/wearablepie/photos/photo%d.jpg'%photonum,'rb')}
 					data = r.json()['photoId']['data']
+					r.close()
 					tries = 0
 					smallTries = 3
 					finalResult = True
@@ -107,6 +105,7 @@ def uploadPhoto(photonum):
 						try:
 							r2 = requests.post(url, files=files,data=data)
 							print("Uploaded photo",r2)
+							r2.close()
 							smallTries = 0
 							GPIO.output(photoFeedback, True)
 							time.sleep(2)
@@ -115,11 +114,14 @@ def uploadPhoto(photonum):
 							smallTries -= 1
 							print("Could not upload photo",e)
 							time.sleep(2)
+							continue
 						
 			except Exception, e:
 				print("Could not send GPS position ",e)
 				tries =- 1
+				r.close()
 				time.sleep(2)
+				continue
 	return finalResult
 
 #upload photos that were not yet
@@ -138,7 +140,7 @@ if PhotoCounter > 0 and PhotoCounter < 5:
 		LastPhotoUploaded += 1
 		updatePhotosRemaining(LastPhotoUploaded)
 else:
-	print("I'm not uploading all these %d photos"%PhotoCounter)
+	print("I'm not uploading these %d photos"%PhotoCounter)
 	LastPhotoUploaded=getPhotosTaken()
 	PhotoCounter=0
 	updatePhotosRemaining(LastPhotoUploaded)

@@ -115,7 +115,7 @@ while(True):
 							#upload data
 							restPost={}
 							url = 'http://catinthemap.herokuapp.com/geo/tag/'+UserId;
-							headers = {'content-type':'application/json'}
+							headers = {'content-type':'application/json', 'connection':'close'}
 							restPost['location']=dict(report)
 							restPost['deviceId']=DeviceId
 							tries = 3
@@ -124,9 +124,11 @@ while(True):
 									r = requests.post(url, headers=headers, data=json.dumps(restPost))
 									print("Sent GPS position:",r)
 									if r.status_code == 200:
+										r.close()
 										tries = 0
 								except Exception, e:
 									print("Could not send GPS position ",e)
+									r.close()
 									time.sleep(2)
 									tries =- 1
 				PushCount += 1

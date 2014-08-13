@@ -11,3 +11,6 @@ chmod +x /usr/share/wearablepie/scripts/button.py
 chmod +x /usr/share/wearablepie/scripts/gpsservice.py
 chmod +x /usr/share/wearablepie/scripts/uploadphoto.py
 chmod +x /usr/share/wearablepie/scripts/wifi.py
+
+cp -rf resetUploadService /etc/netctl/hooks/
+cp -rf wifiLEDControl /etc/netctl/hooks/

@@ -2,8 +2,8 @@
 
 
 import sys 
-#sys.stdout = open('/tmp/wearablepie-button.log','w');
-#sys.stderr = open('/tmp/wearablepie-button-err.log','w');
+sys.stdout = open('/tmp/wearablepie-button.log','w');
+sys.stderr = open('/tmp/wearablepie-button-err.log','w');
 
 from subprocess import Popen, PIPE
 import json
@@ -99,11 +99,14 @@ while True:
 		
 			with open('/etc/wearablepie/config.json', 'r') as config:
 				configJson = json.load(config)
-				configJson['user-id'] = fields['User']
-				configJson['registered'] = True
-
-			with open('/etc/wearablepie/config.json', 'w') as config:
-				config.write(json.dumps(configJson))
+				if configJson['user-id'] != fields['User']:
+					configJson['user-id'] = fields['User']
+					configJson['registered'] = True
+					with open('/etc/wearablepie/config.json', 'w') as config:
+						config.write(json.dumps(configJson))
+					os.system("systemctl stop wearablepie-upload")
+					os.system("systemctl start wearablepie-upload")
+					
 
 			with open('/etc/netctl/'+fields['ESSID'], 'w') as profile:
 				createProfile(profile, fields)

@@ -1,0 +1,11 @@
+#!/bin/bash
+
+echo $ACTION >> /tmp/connection.log
+
+if [ $ACTION == 'CONNECT' ]; then
+	/usr/bin/python2 /usr/share/wearablepie/scripts/wifi.py 1
+fi
+
+if [ $ACTION == 'DISCONNECT' ]; then
+	/usr/bin/python2 /usr/share/wearablepie/scripts/wifi.py 0
+fi
