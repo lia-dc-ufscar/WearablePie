@@ -1,9 +1,9 @@
 {
-    "device-id": "<DEVICE>",
+    "device-id": "00000000f90cbb6b",
     "registered": false,
     "user-id": "",
     "rest": "http://catinthemap.herokuapp.com",
-	"upload-repeat-interval": 300,
+   	"upload-repeat-interval": 300,
     "s3-storage": "wearable-photos.s3.amazon.com",
     "gps-push-rate": 300 
 }

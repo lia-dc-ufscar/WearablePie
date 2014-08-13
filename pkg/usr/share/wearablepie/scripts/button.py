@@ -2,8 +2,8 @@
 
 
 import sys 
-sys.stdout = open('/tmp/wearablepie-button.log','w');
-sys.stderr = open('/tmp/wearablepie-button-err.log','w');
+#sys.stdout = open('/tmp/wearablepie-button.log','w');
+#sys.stderr = open('/tmp/wearablepie-button-err.log','w');
 
 from subprocess import Popen, PIPE
 import json
@@ -19,7 +19,7 @@ def decodeFields(string):
 	pairs = string.split(',')
 	for p in pairs:
 		key,value = p.split(':')
-		if key not in ('Security', 'ESSID', 'Key'): 
+		if key not in ('Security', 'ESSID', 'Key', 'User'): 
 			raise ValueError
 		dictionary[key] = value
 	print("QR Code fields = "+str(dictionary))
@@ -96,16 +96,24 @@ while True:
 				continue
 
 			GPIO.output(qrcodeFeedback, True)
+		
+			with open('/etc/wearablepie/config.json', 'r') as config:
+				configJson = json.load(config)
+				configJson['user-id'] = fields['User']
+				configJson['registered'] = True
+
+			with open('/etc/wearablepie/config.json', 'w') as config:
+				config.write(json.dumps(configJson))
+
 			with open('/etc/netctl/'+fields['ESSID'], 'w') as profile:
 				createProfile(profile, fields)
-
 			print("Profile "+fields['ESSID']+" created")
 			os.system("systemctl stop netctl-auto@wlan0.service")
 			os.system("systemctl start netctl-auto@wlan0.service")
 			print("netctl-auto restarted")
+
 			os.system("rm "+path)
 			print("Photo "+path+" removed")
-			#wait a while before turning QRCode feedback off
 			GPIO.output(qrcodeFeedback, False)
 		else:
 			print("No QR code found")
