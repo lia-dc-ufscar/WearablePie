@@ -5,6 +5,5 @@
     "rest": "http://catinthemap.herokuapp.com",
 	"upload-repeat-interval": 300,
     "s3-storage": "wearable-photos.s3.amazon.com",
-    "gps-refresh-rate": 120,
-    "gps-push-rate": 5
+    "gps-push-rate": 300 
 }
