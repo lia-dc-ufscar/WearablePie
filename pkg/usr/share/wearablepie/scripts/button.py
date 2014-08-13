@@ -19,7 +19,7 @@ def decodeFields(string):
 	pairs = string.split(',')
 	for p in pairs:
 		key,value = p.split(':')
-		if key not in ('Security', 'ESSID', 'Key', 'User'): 
+		if key not in ('Security', 'ESSID', 'Key'): 
 			raise ValueError
 		dictionary[key] = value
 	print("QR Code fields = "+str(dictionary))
