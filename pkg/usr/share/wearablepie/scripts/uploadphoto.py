@@ -7,7 +7,13 @@ sys.stderr = open('/tmp/wearablepie-uploadphoto','w',0)
 import json
 import time
 import requests
+import RPi.GPIO as GPIO
 from pyinotify import WatchManager, Notifier, EventsCodes, ProcessEvent
+
+photoFeedback = 24 
+GPIO.setmode(GPIO.BCM)
+GPIO.setup(photoFeedback, GPIO.OUT)
+GPIO.setwarnings(False)
 
 #load configuration
 UploadRepeatInterval = 300	#update files every 5 minutes
@@ -99,6 +105,9 @@ def uploadPhoto(photonum):
 							r2 = requests.post(url, files=files,data=data)
 							print("Uploaded photo",r2)
 							smallTries = 0
+							GPIO.output(photoFeedback, True)
+							time.sleep(2)
+							GPIO.output(photoFeedback, False)
 						except Exception, e:	
 							smallTries -= 1
 							print("Could not upload photo",e)

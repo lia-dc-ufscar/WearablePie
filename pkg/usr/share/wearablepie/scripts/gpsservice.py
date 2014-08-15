@@ -15,12 +15,13 @@ import requests
 #setup system date
 import datetime
 import os
+
 GetGPSSystemDate=False
 if datetime.date.today().year < 1980:
 	print("System date has an odd value: ",datetime.date.today().year)
 	GetGPSSystemDate=True
-	print("Setting it up to 2014-06-14T12:33:43.000Z")
-	os.system("date --set '2014-06-14T12:33:43.000Z'")
+	print("Setting it up to 2014-08-13T12:33:43.000Z")
+	os.system("date --set '2014-08-13T12:33:43.000Z'")
 
 
 #load configuration
@@ -31,6 +32,7 @@ DeviceRegistered = False
 RestAPI = "catinthemap.herokuapp.com"
 UserId = ""
 DeviceId = ""
+
 try:
 	config = open('/etc/wearablepie/config.json','r')
 	configJson =json.load(config)
@@ -44,26 +46,25 @@ try:
 except Exception, e:
 	print "Could not load configuration: ",e
 
-connected = False
 session = None
+connected = False
 
 print("Configuration loaded: ",SleepTime,PushRate,DeviceRegistered,UserId)
-
-
-while(not connected):
+		
+while not connected:
 	try:
 		session = gps.gps()
 		session.stream(gps.WATCH_ENABLE | gps.WATCH_NEWSTYLE)
 		connected = True
 	except Exception, e:
-		print("Could not connect to the GPS module: ",e)
-		subprocess.call(['/bin/gpsd', '/dev/ttyAMA0'])
+		print("Could not connect to the GPS module: ", e)
+		subprocess.call(["/bin/gpsd", "/dev/ttyAMA0"])
 		time.sleep(2)
-		
+
 #open gps log
 GpsLog = open("/var/wearablepie/gps.log","a")
 
-print("Connected to GPS Dameon")
+print("Connected to GPS Daemon")
 
 while(True):
 	try:
@@ -75,6 +76,7 @@ while(True):
 					GetGPSSystemDate = False
 					print("Setting up system date")
 					os.system("date --set '%s'"%report.time)
+				
 				GpsLog.write("%s %s\n"%(report.time,report))
 				lastpos = open('/var/wearablepie/last-gps.json','w')
 				jsonpos= json.dumps(dict(report))
@@ -103,7 +105,15 @@ while(True):
 								tries =- 1
 			time.sleep(SleepTime)
 			PushCount += 1
-			
+			#Clean current connection
+			print("Cleaning current connection")
+			session.close()
+			session = gps.gps()
+			session.stream(gps.WATCH_ENABLE | gps.WATCH_NEWSTYLE)
+		else:
+			session.close()
+			session = gps.gps()
+			session.stream(gps.WATCH_ENABLE | gps.WATCH_NEWSTYLE)
 	except KeyError:
 		pass
 	except KeyboardInterrupt:
@@ -112,8 +122,4 @@ while(True):
 		quit()
 	except StopIteration:
 		print("Reached StopIteration")
-		time.sleep(5)
-		session = gps.gps()
-		session.stream(gps.WATCH_ENABLE | gps.WATCH_NEWSTYLE)
-
-
+		session = None
