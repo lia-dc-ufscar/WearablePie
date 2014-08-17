@@ -60,9 +60,6 @@ while not connected:
 		subprocess.call(["/bin/gpsd", "/dev/ttyAMA0"])
 		time.sleep(2)
 
-#open gps log
-GpsLog = open("/var/wearablepie/gps.log","a")
-
 print("Connected to GPS Daemon")
 
 #Feedback
@@ -107,7 +104,6 @@ while(True):
 					if (GetGPSSystemDate):
 						GetGPSSystemDate = False
 						os.system("date --set '%s'"%report.time)
-					GpsLog.write("%s %s\n"%(report.time,report))
 					lastpos = open('/var/wearablepie/last-gps.json','w')
 					jsonpos= json.dumps(dict(report))
 					print >> lastpos, jsonpos
@@ -139,7 +135,6 @@ while(True):
 		pass
 	except KeyboardInterrupt:
 		print("Interrupted by Keyboard")
-		GpsLog.close()
 		quit()
 	except StopIteration:
 		print("Reached StopIteration")
